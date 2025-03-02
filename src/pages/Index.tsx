@@ -1,8 +1,11 @@
 
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/common/Navbar';
 import Hero from '@/components/marketplace/Hero';
 import AgentGrid from '@/components/marketplace/AgentGrid';
+import { Settings } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Index = () => {
   useEffect(() => {
@@ -13,6 +16,24 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
+      <div className="fixed bottom-8 right-8 z-50">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link 
+                to="/settings" 
+                className="bg-brand-blue text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors duration-200"
+                aria-label="Settings"
+              >
+                <Settings className="h-5 w-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Settings</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <main className="flex-grow">
         <Hero />
         <AgentGrid />
