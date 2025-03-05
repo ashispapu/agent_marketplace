@@ -1,12 +1,29 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, ChevronDown } from 'lucide-react';
+import { Menu, ChevronDown, LogOut } from 'lucide-react';
+import { 
+  SignedIn,
+  SignedOut, 
+  useUser,
+  useClerk 
+} from '@clerk/clerk-react';
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,22 +60,104 @@ const Navbar = () => {
 
         {/* User Profile */}
         <div className="hidden md:flex items-center space-x-4">
-          <button className="flex items-center space-x-2 rounded-full bg-white p-1 pr-4 shadow-sm border border-gray-200">
-            <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
-              <img 
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
-                alt="User Profile" 
-                className="h-full w-full object-cover" 
-              />
+          <SignedIn>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center space-x-2 rounded-full bg-white p-1 pr-4 shadow-sm border border-gray-200">
+                  <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+                    {user?.imageUrl ? (
+                      <img 
+                        src={user.imageUrl} 
+                        alt={`${user.firstName}'s profile`} 
+                        className="h-full w-full object-cover" 
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-primary text-white">
+                        {user?.firstName?.[0]}
+                      </div>
+                    )}
+                  </div>
+                  <ChevronDown size={16} className="text-gray-500" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  {user?.firstName} {user?.lastName}
+                </DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SignedIn>
+          <SignedOut>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" asChild>
+                <Link to="/signin">Sign in</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/signup">Sign up</Link>
+              </Button>
             </div>
-            <ChevronDown size={16} className="text-gray-500" />
-          </button>
+          </SignedOut>
         </div>
 
         {/* Mobile Menu Button */}
-        <button className="md:hidden" onClick={toggleMenu}>
-          <Menu size={24} />
-        </button>
+        <div className="md:hidden flex items-center">
+          <SignedIn>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="mr-4 flex items-center space-x-2 rounded-full bg-white p-1 shadow-sm border border-gray-200">
+                  <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
+                    {user?.imageUrl ? (
+                      <img 
+                        src={user.imageUrl} 
+                        alt={`${user.firstName}'s profile`} 
+                        className="h-full w-full object-cover" 
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-primary text-white">
+                        {user?.firstName?.[0]}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  {user?.firstName} {user?.lastName}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SignedIn>
+          <button className="ml-auto" onClick={toggleMenu}>
+            <Menu size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -70,18 +169,16 @@ const Navbar = () => {
             <MobileNavItem to="/about" label="What Is This?" />
             <MobileNavItem to="/dashboard" label="Agent Builder" />
             
-            <div className="pt-2 border-t border-gray-100">
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 overflow-hidden rounded-full bg-gray-200">
-                  <img 
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
-                    alt="User Profile" 
-                    className="h-full w-full object-cover" 
-                  />
-                </div>
-                <span className="text-sm font-medium">John Doe</span>
+            <SignedOut>
+              <div className="pt-2 border-t border-gray-100 flex flex-col space-y-2">
+                <Button variant="outline" asChild className="w-full justify-center">
+                  <Link to="/signin">Sign in</Link>
+                </Button>
+                <Button asChild className="w-full justify-center">
+                  <Link to="/signup">Sign up</Link>
+                </Button>
               </div>
-            </div>
+            </SignedOut>
           </div>
         </div>
       )}
